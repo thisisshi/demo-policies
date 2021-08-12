@@ -1,0 +1,3 @@
+policies:
+  - name: gcp-project
+    resource: gcp.project

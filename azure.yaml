@@ -1,0 +1,3 @@
+policies:
+  - name: subscriptions-2
+    resource: azure.subscription

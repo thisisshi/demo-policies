@@ -1,0 +1,66 @@
+policies:
+  - name: lambdas
+    description: a test description 3 
+    resource: aws.lambda
+  - name: lambdas2
+    resource: aws.lambda
+    description: a test description 12
+  - name: sonny-test-create-lambda
+    resource: aws.lambda
+    description: a test description
+    mode:
+      type: cloudtrail
+      events:
+        - event: CreateFunction20150331
+          source: lambda.amazonaws.com
+          ids: requestParameters.functionName
+  - name: vm
+    description: a test description
+    resource: azure.vm
+  - name: s3-us-east-1
+    resource: aws.s3
+    conditions:
+      - type: value
+        key: region
+        value: us-east-1
+  - name: s3-us-west-2
+    resource: aws.s3
+    conditions:
+      - type: value
+        key: region
+        value: us-west-2
+  - name: public-access-s3-mark-2
+    resource: s3
+    conditions:
+      - region: us-east-1
+    metadata:
+      category: [sstk/public-access]
+      creator: sstk
+      severity: medium
+      long-description: |
+        Tags buckets with read acls for all users and sends a slack notification.
+        Does not check for write acls, as we have a separate check and action for those.
+    description: |
+      tag bucket with public read access acl and send slack notification
+    tags:
+      - sstk
+      - secops
+      - "public access"
+    filters:
+      - "tag:c7n_public_access_exception": absent
+      - "tag:stacklet_public_access_s3_acl_policy": absent
+      - type: global-grants
+        allow_website: false
+        permissions: [READ, READ_ACP]
+    actions:
+      - type: mark-for-op
+        tag: stacklet_public_access_s3_acl_policy
+        op: notify
+        days: 14
+      - type: notify
+        slack_template: slack.j2
+        to:
+          - slack://stacklet-alerts
+        transport:
+          type: sqs
+          queue: "https://sqs.us-east-2.amazonaws.com/123456789012/foo-stacklet-commshub-messages"
